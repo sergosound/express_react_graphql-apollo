@@ -17,49 +17,58 @@
 
 // =====================================================================================================================
 
-const { ApolloServer } = require('apollo-server-express');
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
+const {ApolloServer} = require('apollo-server-express');
 const express = require('express');
 const http = require('http');
-const schema = require('./schema');
-const rootValue = require('./root');
-// const cors = require('cors');
+const typeDefs = require('./typeDefs');
+const resolvers = require('./resolvers');
+const {execute, subscribe} = require('graphql');
+const {SubscriptionServer} = require('subscriptions-transport-ws');
+const {makeExecutableSchema} = require('@graphql-tools/schema');
 
-async function startApolloServer(typeDefs, resolvers) {
-    // Required logic for integrating with Express
+const PORT = 5000;
+
+(async function startApolloServer() {
     const app = express();
-    // app.use(cors());
     const httpServer = http.createServer(app);
 
-    // Same ApolloServer initialization as before, plus the drain plugin.
-    const server = new ApolloServer({
+    const schema = makeExecutableSchema({
         typeDefs,
-        resolvers,
-        plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+        resolvers
     });
 
-    // More required logic for integrating with Express
+    const server = new ApolloServer({
+        schema,
+        plugins: [{
+            async serverWillStart() {
+                return {
+                    async drainServer() {
+                        subscriptionServer.close();
+                    }
+                }
+            }
+        }],
+    });
+
+    const subscriptionServer = SubscriptionServer.create(
+        {
+            schema,
+            execute,
+            subscribe,
+            onConnect(connectionParams, webSocket, context) {
+                console.log('Connected');
+            },
+            onDisconnect(webSocket, context) {
+                console.log('Disconnected');
+            },
+        },
+        {server: httpServer, path: server.graphqlPath}
+    );
+
     await server.start();
-    server.applyMiddleware({
-        app,
+    server.applyMiddleware({ app, path: '/' });
 
-        // By default, apollo-server hosts its GraphQL endpoint at the
-        // server root. However, *other* Apollo Server packages host it at
-        // /graphql. Optionally provide this to match apollo-server.
-        path: '/'
+    httpServer.listen(PORT, () => {
+        console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
     });
-
-    // Modified server startup
-    await new Promise(resolve => httpServer.listen({ port: 5000 }, resolve));
-    console.log(`🚀 Server ready at http://localhost:5000${server.graphqlPath}`);
-};
-
-startApolloServer(schema, {
-    Query: {
-        getUser: rootValue.getUser,
-        getAllUsers: rootValue.getAllUsers,
-    },
-    Mutation: {
-        createUser: rootValue.createUser
-    }
-});
+})();

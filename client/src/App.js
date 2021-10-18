@@ -17,7 +17,7 @@ function App() {
     const [users, setUsers]  = useState([]);
     const [username, setUsername]  = useState('');
     const [age, setAge] = useState(0);
-    // console.log('GET_ALL_USERS', loading, error, data, refetch)
+    // console.log('GET_ALL_USERS', loading, error, data, refetch);
 
     const addUser = (e) => {
         e.preventDefault();
