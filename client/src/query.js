@@ -19,7 +19,7 @@ export const CREATE_USER = gql`
 `;
 
 export const CREATE_USER_SUBSCRIPTION = gql`
-    subscription createUser($userID: ID!) {
+    subscription OnCreateUser($userID: ID!) {
         createUser(userID: $userID) {
             id, name
         }

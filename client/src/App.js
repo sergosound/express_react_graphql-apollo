@@ -7,11 +7,14 @@ import './App.css';
 function App() {
     const { subscribeToMore, loading, error, data, refetch } = useQuery(GET_ALL_USERS);
     const [newUser] = useMutation(CREATE_USER, {
-        // refetchQueries: [GET_ALL_USERS],
+        refetchQueries: [GET_ALL_USERS],
         // onQueryUpdated: (oq, d, ld) => console.log('UPDATED', oq, d, ld)
     });
     const { data: subData, loading: subloading } = useSubscription(CREATE_USER_SUBSCRIPTION, {
         variables: { postId: 1 },
+        onSubscriptionData: (data) => {
+            console.log('subscription', data);
+        }
     });
 
     const [users, setUsers]  = useState([]);
@@ -26,7 +29,7 @@ function App() {
                 input: { username, age: Number(age) }
             }
         }).then(res => {
-            // console.log('res', res);
+            console.log('res', res);
             setUsername('');
             setAge(0);
         });
@@ -61,7 +64,7 @@ function App() {
             </div>
         </form>
         <AllUsers loading={loading} error={error} data={users} />
-        {!subloading ? subData : 'subData is load'}
+        {!subloading ? `load ${subData}` : 'subData is load'}
         {/*<Posts*/}
         {/*    subscribeToPosts={*/}
         {/*        () => {*/}

@@ -18,7 +18,7 @@ const resolvers = {
         },
     },
     Mutation: {
-        createUser: ({ input }) => {
+        createUser: (_, { input }) => {
             const user = createUser(input);
             users.push(user);
             pubsub.publish('USER_CREATED', { userCreated: input });
@@ -28,7 +28,7 @@ const resolvers = {
     Subscription: {
         createUser: {
             subscribe: withFilter(
-                () => pubsub.asyncIterator('[USER_CREATED]'),
+                () => pubsub.asyncIterator(['USER_CREATED']),
                 (payload, variables) => {
                     console.log('|| sub emit ||', payload, variables);
                     return true;

@@ -5,13 +5,14 @@ import { ApolloClient, InMemoryCache, ApolloProvider, useQuery, gql } from '@apo
 import { split, HttpLink } from '@apollo/client';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { WebSocketLink } from '@apollo/client/link/ws';
+import '../enzyme.config';
 
 const httpLink = new HttpLink({
     uri: 'http://localhost:5000/graphql',
 });
 const wsLink = new WebSocketLink({
-    uri: 'ws://localhost:5000/subscriptions',
-    options: { reconnect: true }
+    uri: 'ws://localhost:5000/graphql',
+    options: { reconnect: true },
 });
 const splitLink = split(
     ({ query }) => {

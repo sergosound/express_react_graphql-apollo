@@ -35,7 +35,7 @@ const typeDefs = buildSchema(`
     }
     
     type Subscription {
-        createUser: User
+        createUser(userId: ID): User
     }
 `);
 
